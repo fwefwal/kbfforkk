@@ -1,18 +1,22 @@
 <script lang="ts" setup>
-import { useRouter } from 'vue-router';
-import Typography from '@/components/Typography.vue';
+import { authClient } from '~/lib/auth-client';
 
-const router = useRouter()
+const { data } = await useFetch('/api/test')
+const session = authClient.useSession()
+
 </script>
 
 <template>
     <div>
+        <p v-if="session?.data">{{ session.data.user }}</p>
+        <p v-else>Guest</p>
+
         <Typography type="h1" content="Home page" />
         <Typography type="p">
             Amet minim mollit non deserunt ullamco est sit aliqua dolor do amet sint. Velit officia consequat duis enim
             velit mollit. Exercitation veniam consequat sunt nostrud amet.
         </Typography>
-        <button @click="router.push('/auth')">Authorization</button>
+        <NuxtLink to="/auth">Authorization</NuxtLink>
     </div>
     <img src="/images/tools.png" alt="tools image">
 </template>
