@@ -1,75 +1,42 @@
-# Nuxt Minimal Starter
+# ithub-frontend-vue-nuxt
 
-Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+_(контрольная точка №4)_
 
-## Setup
+## Задание
 
-Make sure to install dependencies:
+Перенести приложение, разработанное в рамках *контрольной точки №2* по [макету](https://www.figma.com/file/NfRkFdCH22pMltWMmjdDRP/Auth-pages-tamplate?type=design&node-id=0%3A1&mode=dev&t=xV0MRNPCqesL0tR5-1), на фреймворк `Nuxt 4`.
 
-```bash
-# npm
-npm install
+В текущем репозитории уже реализован полный либо частичный перенос страниц __Home__ и __Users__, а также присутствует серверная часть в минимальном объеме. 
 
-# pnpm
-pnpm install
+На основе данного репозитория необходимо:
 
-# yarn
-yarn install
+1. Добавить страницу __Login__ и соответствующую серверную логику. Логин производить в `/server/api/login.post.ts`, используя функцию `auth.api.signInEmail` из `better-auth`.  
 
-# bun
-bun install
-```
+2. Добавить страницу для регистрации __Signup__ и соответствующую серверную логику. Регистрацию производить в `/server/api/signup.post.ts`, используя функцию `auth.api.signUpEmail` из `better-auth`.  
 
-## Development Server
+3. Настроить соединение и перенести данные из `public/data/users.json` в базу данных `sqlite3`, используя сборщик запросов `kysely`. 
 
-Start the development server on `http://localhost:3000`:
+4. Доработать страницу __Users__, чтобы данные приходили с сервера.
 
-```bash
-# npm
-npm run dev
+5. Перенести и доработать страницу __Profile__ и соответствующую серверную логику. Страница должна получать информацию о текущем залогиненном пользователе, и не должна отображаться в случае отсутствия данных о сессии.
 
-# pnpm
-pnpm dev
+## Критерии оценивания
 
-# yarn
-yarn dev
+Критерии указаны в формате комментариев в файлах `./router/ProfilePage.vue` и `./router/UsersPage.vue`
 
-# bun
-bun run dev
-```
+#### ProfilePage
 
-## Production
+- отрисовывать первого доступного пользователя в соответствии с макетом (1.5 балла)
+- бонус*: рисовать аватарку `(fe)male_profile.png` в зависимости от пола (0.5 балла)
 
-Build the application for production:
+#### UsersPage
 
-```bash
-# npm
-npm run build
+- проверять, сколько юзеров прогрузилось в текущем запросе, и если это количество меньше пяти, то переставать отображать кнопку "Load More..." (1 балл)
+- добавить спиннер через `background-image` на диве или через `img` с векторной иконкой (0.5 балла)
+- добавить email (0.5 балла)
+- добавить стили для соответствия макету (0.5 балла)
+- бонус*: плюс 0.5 балла за анимацию спиннера
 
-# pnpm
-pnpm build
+## Формат сдачи
 
-# yarn
-yarn build
-
-# bun
-bun run build
-```
-
-Locally preview production build:
-
-```bash
-# npm
-npm run preview
-
-# pnpm
-pnpm preview
-
-# yarn
-yarn preview
-
-# bun
-bun run preview
-```
-
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+Прикрепить ответ ссылкой на собственную ветку (+ 0.5 балла) либо форк
