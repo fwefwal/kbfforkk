@@ -1,34 +1,14 @@
 import { auth } from "~~/server/utils/auth"
-import { database } from '~~/server/db/connection'
+import { readBody, getHeaders } from "h3"
 
 export default defineEventHandler(async (event) => {
     const body = await readBody(event)
+    // const headers = getHeaders(event)
+    const headers = new Headers(getHeaders(event) as Record<string, string>)
+    const result = await auth.api.signUpEmail({
+        body,
+        headers
+    })
 
-    try {
-        const result = await auth.api.signUpEmail({
-            body,
-            headers: getRequestHeaders(event)
-        })
-
-        const newUser = result.user
-
-
-        await database
-            .insertInto("bio")
-            .values({
-                firstName: body.name || newUser.name || "Пользователь",
-                lastName: "",
-                gender: true,
-                userId: newUser.id
-            })
-            .execute()
-
-        return result
-
-    } catch (error: any) {
-        throw createError({
-            statusCode: 400,
-            statusMessage: error?.message || "Ошибка при регистрации"
-        })
-    }
+    return result
 })

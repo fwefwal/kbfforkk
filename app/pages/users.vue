@@ -1,105 +1,75 @@
 <script lang="ts" setup>
 import { ref, onMounted } from 'vue'
+import Typography from '@/components/Typography.vue'
+import Paper from '@/components/Paper.vue'
 import type { User } from '~~/shared/types/user'
-import Paper from '~/components/Paper.vue'
+import type { UsersDTO } from '~~/shared/types/user.dto'
 
 const users = ref<User[]>([])
 const offset = ref<number>(0)
 const loading = ref<boolean>(false)
+const hasMore = ref<boolean>(true)
 const errorMessage = ref<string | null>(null)
-const canLoadMore = ref<boolean>(true)
 
-const limit = 5
+const getUsers = async (limit: number = 5) => {
+    if (!hasMore.value) return
 
-const getUsers = async () => {
-  loading.value = true
-  errorMessage.value = null
+    loading.value = true
+    errorMessage.value = null
 
-  try {
-    const data = await $fetch<User[]>('/api/users')
+    const url = `/api/users?offset=${offset.value}&limit=${limit}`
 
-    const chunk = data.slice(offset.value, offset.value + limit)
+    try {
+        const { data, error } = await useFetch<UsersDTO>(url)
 
-    users.value.push(...chunk)
+        if (error.value) {
+            throw new Error(error.value.message || 'Ошибка загрузки пользователей')
+        }
 
-    if (chunk.length < limit) {
-      canLoadMore.value = false
+        if (!data.value) {
+            throw new Error('Нет данных от сервера')
+        }
+
+        users.value = [...users.value, ...data.value.users]
+
+        offset.value += limit
+
+        hasMore.value = data.value.users.length === limit
+    } catch (error: unknown) {
+        errorMessage.value = (error as Error).message
+        console.error(error)
+    } finally {
+        loading.value = false
     }
-
-    offset.value += limit
-
-  } catch (error: unknown) {
-    errorMessage.value = (error as Error).message
-  } finally {
-    loading.value = false
-  }
 }
 
-onMounted(() => getUsers())
+onMounted(() => {
+    getUsers(5)
+})
 </script>
 
 <template>
-    <div class="container">
-        <Typography type="h1" class="title" />
-        <div v-if="errorMessage" class="error">
-      {{ errorMessage }}></div>
-        <div v-if="loading" class="loader-container">
-            <div class="spinner"></div>
-        </div>
-
-        <article v-else class="users-list">
-            <Paper v-for="user in users" :key="user.id" class="user-card">
-                <span class="user-name">
-                    {{ user.firstName }} {{ user.lastName }} {{ user.maidenName }}
-                </span>
-                <span class="user-email">{{ user.email }}</span>
-            </Paper>
-
-            <Paper v-if="!isLastPage" class="button-card">
-                <button @click="getUsers(5)">...</button>
-            </Paper>
-        </article>
-    </div>
-</template>
-
-<!-- <template>
-  <div class="page">
-    <p v-if="errorMessage" class="error">
-      {{ errorMessage }}
-    </p>
-
-    <div v-show="loading" class="loader-wrap">
-      <div class="loader"></div>
+    <Typography type="h1" content="Users" />
+    <div v-if="loading" class="spinner">
     </div>
 
-    <article class="list">
-      <Paper v-for="user in users" :key="user.id">
-        <div class="user-row">
-          <span class="name">
-            {{ user.firstName }} {{ user.lastName }} {{ user.maidenName }}
-          </span>
+    <article>
+        <Paper v-for="user in users" :key="user.id">
+            <span>
+                {{ user.firstName }} {{ user.lastName }} {{ user.maidenName }}
+            </span>
+            <span>{{ user.email }}</span>
+        </Paper>
 
-          <span class="email">
-            {{ user.email }}
-          </span>
-        </div>
-      </Paper>
+        <Paper v-if="hasMore && !loading">
+            <button @click="getUsers(5)">Load</button>
+        </Paper>
 
-      <Paper v-if="canLoadMore">
-        <button
-          class="more"
-          @click="getUsers"
-          :disabled="loading"
-        >
-          ...
-        </button>
-      </Paper>
+        <p v-if="errorMessage" style="color: red;">
+            {{ errorMessage }}
+        </p>
     </article>
-  </div>
 </template>
- -->
-
-
 <style scoped>
 .container {
     display: flex;

@@ -1,61 +1,66 @@
 <script lang="ts" setup>
 import { ref, onMounted, computed } from 'vue'
-import type { User, UsersDTO } from '@/types'
-
-const dogava = '/images/dog.png'
-const femava = '/images/female.png'
-const malava   = '/images/male.png'
+import type { User } from '~~/shared/types/user'
+import men from '~~/public/images/male_profile.png'
+import fem from '~~/public/images/female_profile.png'
 
 const user = ref<User | null>(null)
 const loading = ref(true)
+const errorMessage = ref<string | null>(null)
 
-onMounted(() => {
-  // ajax('')
-  fetch('/data/users.json')
-    .then<UsersDTO>(res => res.json())
-    .then(data => {
-      user.value = data.users?.[0] ?? null
-    })
-    .catch(err => console.error(err))
-    .finally(() => loading.value = false)
+const avatarSrc = computed(() => {
+  if (!user.value) return men
+
+  return user.value.gender === 'female'
+    ? fem
+    : men
 })
 
-const profileImage = computed(() => {
-  if (!user.value) return dogava
+onMounted(async () => {
+  loading.value = true
+  errorMessage.value = null
 
-  const gender = user.value.gender?.toLowerCase()
+  try {
+    const data = await $fetch<User>('/api/profile')
+    user.value = data
+  } catch (err: any) {
+    console.error(err)
 
-  if (gender === 'female') {
-    return femava
+    if (err?.status === 401 || err?.data?.statusCode === 401) {
+      await navigateTo('/login')
+      return
+    }
+
+    errorMessage.value = err?.data?.message || 
+                        err?.data?.statusMessage || 
+                        'ошибка загрузки профиля'
+  } finally {
+    loading.value = false
   }
-  
-  if (gender === 'male') {
-    return malava
-  }
-
-  return dogava
 })
-
 </script>
 
 <template>
-  <div v-if="loading" class="loading">loading...</div>
-  <div v-else-if="!user" class="no-user">404 | data lost</div>
+  <div class="profile-page">
+    <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
+    <p v-if="loading" class="loading">Loading profile...</p>
 
-  <div v-else class="profile-page">
-    <h1 class="title">My profile</h1>
+    <div v-if="user" class="content">
+      <h1 class="title">My profile</h1>
 
-    <div class="content">
-      <div class="info">
-        <div class="info-row">Username: {{ user.username }}</div>
-        <div class="info-row">Name: {{ user.firstName }}</div>
-        <div class="info-row">Lastname: {{ user.lastName }}</div>
-        <div class="info-row">Gender: {{ user.gender }}</div>
-        <div class="info-row">Email: {{ user.email }}</div>
-      </div>
+      <div class="row">
+        <div class="info">
+          <div class="info-row">Username: {{ user.username }}</div>
+          <div class="info-row">Name: {{ user.firstName }}</div>
+          <div class="info-row">Lastname: {{ user.lastName }}</div>
+          <div class="info-row">Maiden name: {{ user.maidenName || '—' }}</div>
+          <div class="info-row">Gender: {{ user.gender }}</div>
+          <div class="info-row">Email: {{ user.email }}</div>
+        </div>
 
-      <div class="avatar">
-        <img :src="profileImage" alt="avatar image" />
+        <div class="avatar">
+          <img :src="avatarSrc" alt="Profile avatar" />
+        </div>
       </div>
     </div>
   </div>
@@ -64,50 +69,39 @@ const profileImage = computed(() => {
 <style scoped>
 .profile-page {
   max-width: 900px;
-  margin: 0 auto;
-  padding: 60px 40px;
+  margin: 60px auto;
+  padding: 0 40px;
 }
 
 .title {
-  font-size: 44px;
-  font-weight: 700;
-  color: #111;
-  margin: 0 0 15% 0;
+  font-size: 56px;
+  font-weight: 800;
+  color: #21243D;
+  margin-bottom: 50px;
   text-align: left;
 }
 
-.content {
+.row {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
   gap: 100px;
+  align-items: flex-start;
 }
 
 .info {
-flex: 1;
-min-width: 0;
+  flex: 1;
 }
 
 .info-row {
   font-size: 19px;
-  margin-bottom: 15px;
-  line-height: 2;
-  padding: 5px 20px 5px 20px;
-  box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.2);
-  color: #222;
+  margin-bottom: 18px;
+  padding: 14px 24px;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   border-radius: 10px;
-  font-family: "Roboto", sans-serif;
-  font-optical-sizing: auto;
-  font-weight: 500;
-  font-style: normal;
-  font-variation-settings:
-  "wdth" 100;
+  color: #26314a;
   width: fit-content;
-  max-width: 100%;
-}
-
-.info-row:last-child {
-  border-bottom: none;
+  min-width: 320px;
 }
 
 .avatar {
@@ -115,36 +109,38 @@ min-width: 0;
 }
 
 .avatar img {
-  width: 280px;
-  height: 280px;
-  object-fit: cover;
+  width: 260px;
+  height: 260px;
   border-radius: 50%;
+  object-fit: cover;
   border: 1px solid #e5e5e5;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
 }
 
 .loading,
-.no-user {
-  padding: 180px 20px;
+.error {
   text-align: center;
-  font-size: 1.4rem;
-  color: #777;
+  font-size: 1.3rem;
+  padding: 100px 20px;
 }
 
-@media (max-width: 700px) {
-  .content {
+.error { color: rgb(255, 100, 100); }
+.loading { color: #666; opacity: 0.8; }
+
+/* Адаптив */
+@media (max-width: 768px) {
+  .row {
     flex-direction: column;
-    gap: 60px;
+    gap: 50px;
     align-items: center;
   }
-
-  .info {
+  .info-row {
+    min-width: 100%;
     text-align: center;
-    max-width: 100%;
   }
-
   .avatar img {
-    width: 243px;
-    height: 243px;
+    width: 220px;
+    height: 220px;
   }
 }
 </style>

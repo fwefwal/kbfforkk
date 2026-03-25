@@ -9,6 +9,16 @@ interface Database {
         gender: "male" | "female"
         userId: string
     }
+
+    user: {
+    id: string
+    name: string | null
+    email: string
+    image: string | null
+    emailVerified: number | null
+    createdAt: string | null
+    updatedAt: string | null
+  }
 }
 
 // const databasePath = new URL('./sqlite.db', import.meta.url)

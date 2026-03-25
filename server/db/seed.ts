@@ -13,7 +13,8 @@ await database.schema
     .addColumn("userId", "text", (col) => col.notNull())
     .execute()
 
-for (const user of usersData["users"]) {
+// for (const user of usersData['users'])
+for (const user of usersData.users) {
     try {
         const createdUser = await auth.api.signUpEmail({
             body: {
@@ -30,8 +31,6 @@ await database
         .values({
                 firstName: user.firstName,
                 lastName: user.lastName,
-                // gender: m,
-                // не знаю, не видет gender
                 gender: user.gender as 'male' | 'female' || undefined,
                 userId: AU.id,
         })

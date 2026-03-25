@@ -50,43 +50,39 @@ const name = formData.get('name')?.toString().trim()
       <form @submit.prevent="signUP">
 
               <div class="field">
-        <label>Имя / Никнейм</label>
         <input
           name="name"
           type="text"
-          placeholder="Ваше имя"
+          placeholder="имя"
           required
         />
       </div>
 
         
       <div class="field">
-        <label>Email</label>
         <input
           name="email"
           type="email"
-          placeholder="your@email.com"
+          placeholder="почта"
           required
         />
       </div>
 
             <div class="field">
-        <label>Пароль</label>
         <input
           name="password"
           type="password"
-          placeholder="••••••••"
+          placeholder="пароль"
           required
         />
       </div>
 
 
             <button type="submit" class="submit-btn" :disabled="loading">
-        {{ loading ? 'Регистрация...' : 'Submit' }}
+        {{ loading ? 'регистрация...' : 'Submit' }}
       </button>
 
       <div class="login-link">
-        Уже есть аккаунт? 
         <NuxtLink to="/login">Войти</NuxtLink>
       </div>
       
