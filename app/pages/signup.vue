@@ -3,43 +3,40 @@ const router = useRouter()
 const error = ref<string>('')
 const loading = ref(false)
 
-async function login(event: SubmitEvent) {
-  const form = event.target as HTMLFormElement
+async  function signUP(event: SubmitEvent) {
+   const form = event.target as HTMLFormElement
   const formData = new FormData(form)
 
+const name = formData.get('name')?.toString().trim()
   const email = formData.get('email')?.toString().trim()
   const password = formData.get('password')?.toString()
 
   error.value = ''
+  loading.value = true
 
-  if (!email || !password) {
-    error.value = 'Заполните все поля'
-    return
+  try {
+    const { error: fetchError } = await useFetch('/api/signup', {
+      method: 'POST',
+      body: { name, email, password },
+      credentials: 'include'
+    })
+
+    if (fetchError.value) {
+      error.value = fetchError.value?.data?.message 
+                 || fetchError.value?.data?.statusMessage 
+              || 'ошибка при регистрации'
+      return
+    }
+
+    await router.push('/login')
+
+  } catch (err: any) {
+    error.value = err?.message || 'произошла неизвестная ошибка'
+  } finally {
+    loading.value = false
   }
-
-const { error: fetchError } = await useFetch('/api/login', {
-    method: 'POST',
-    body: { email, password },
-    credentials: 'include'
-  })
-
-  if (fetchError.value) {
-    error.value = 'Неверный email или пароль'
-    return
-  }
-
-  await router.push('/profile')
 }
 </script>
-
-    <!-- // TODO 
-    // 1. Достаньте данные из переданной формы
-    // 2. Сделайте запрос к /api/auth/login
-    // используя useFetch
-    // 3. Дождитесь результат запроса: 
-    // если есть ошибки - отобразите их на странице, 
-    // если ошибок нет - перенаправьте пользователя на
-    // страницу Профиля через route -->
 
 <template>
   <div class="auth-page">
@@ -50,32 +47,49 @@ const { error: fetchError } = await useFetch('/api/login', {
       {{ error }}
     </div>
   </div>
-      <form @submit.prevent="login">
-        <div class="field">
-          <label for="email">Login</label>
-          <input
-          id="email"
-          name="email"
-          type="email"
-          required
-          placeholder="."
-          />
-        </div>
+      <form @submit.prevent="signUP">
 
-        <div class="field">
-          <label for="password">Password</label>
+              <div class="field">
+        <label>Имя / Никнейм</label>
         <input
-          id="password"
-          name="password"
-          type="password"
-          placeholder="."
+          name="name"
+          type="text"
+          placeholder="Ваше имя"
           required
         />
-        </div>
-        <button type="submit">Submit</button>
-              <div class="link-wrapper">
-        <NuxtLink to="/signup">Создать аккаунт</NuxtLink>
       </div>
+
+        
+      <div class="field">
+        <label>Email</label>
+        <input
+          name="email"
+          type="email"
+          placeholder="your@email.com"
+          required
+        />
+      </div>
+
+            <div class="field">
+        <label>Пароль</label>
+        <input
+          name="password"
+          type="password"
+          placeholder="••••••••"
+          required
+        />
+      </div>
+
+
+            <button type="submit" class="submit-btn" :disabled="loading">
+        {{ loading ? 'Регистрация...' : 'Submit' }}
+      </button>
+
+      <div class="login-link">
+        Уже есть аккаунт? 
+        <NuxtLink to="/login">Войти</NuxtLink>
+      </div>
+      
       </form>
     </div>
   </div>

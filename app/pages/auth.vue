@@ -1,45 +1,33 @@
 <script lang="ts" setup>
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+
 const router = useRouter()
-const error = ref<string>('')
-const loading = ref(false)
 
-async function login(event: SubmitEvent) {
-  const form = event.target as HTMLFormElement
-  const formData = new FormData(form)
+const formData = ref({
+  login: '',
+  password: ''
+})
 
-  const email = formData.get('email')?.toString().trim()
-  const password = formData.get('password')?.toString()
+const error = ref('')
 
+const handleLogin = () => {
   error.value = ''
 
-  if (!email || !password) {
-    error.value = 'Заполните все поля'
+  const email = formData.value.login.trim()
+
+  if (!email) {
+    error.value = 'Invalid credentials'
     return
   }
 
-const { error: fetchError } = await useFetch('/api/login', {
-    method: 'POST',
-    body: { email, password },
-    credentials: 'include'
-  })
-
-  if (fetchError.value) {
-    error.value = 'Неверный email или пароль'
+  if (!email.includes('@') || !email.includes('.')) {
+    error.value = 'Invalid credentials'
     return
   }
-
-  await router.push('/profile')
+  console.log('логин и пароль:', formData.value)
 }
 </script>
-
-    <!-- // TODO 
-    // 1. Достаньте данные из переданной формы
-    // 2. Сделайте запрос к /api/auth/login
-    // используя useFetch
-    // 3. Дождитесь результат запроса: 
-    // если есть ошибки - отобразите их на странице, 
-    // если ошибок нет - перенаправьте пользователя на
-    // страницу Профиля через route -->
 
 <template>
   <div class="auth-page">
@@ -50,32 +38,17 @@ const { error: fetchError } = await useFetch('/api/login', {
       {{ error }}
     </div>
   </div>
-      <form @submit.prevent="login">
+      <form @submit.prevent="handleLogin">
         <div class="field">
-          <label for="email">Login</label>
-          <input
-          id="email"
-          name="email"
-          type="email"
-          required
-          placeholder="."
-          />
+          <label>Login</label>
+          <input v-model="formData.login" type="text" placeholder="." />
         </div>
 
         <div class="field">
-          <label for="password">Password</label>
-        <input
-          id="password"
-          name="password"
-          type="password"
-          placeholder="."
-          required
-        />
+          <label>Password</label>
+          <input v-model="formData.password" type="password" placeholder="." />
         </div>
         <button type="submit">Submit</button>
-              <div class="link-wrapper">
-        <NuxtLink to="/signup">Создать аккаунт</NuxtLink>
-      </div>
       </form>
     </div>
   </div>

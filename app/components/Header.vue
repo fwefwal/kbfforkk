@@ -5,7 +5,8 @@
     <header>
         <NavLink to="/" content="Home" />
         <NavLink to="/users" content="Users" />
-        <!-- <NavLink to="/profile" content="Profile" /> -->
+        <NavLink to="/profile" content="Profile" />
+        
     </header>
 </template>
 
